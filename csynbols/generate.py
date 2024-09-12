@@ -38,6 +38,8 @@ def basic_attribute_sampler(
     resolution=(32, 32),
     is_gray=False,
     n_symbols=1,
+    char_idx=None,      # select a subset of chars
+    char_dist=None      # add a distribution over chars
 ):
     """Returns a function that generates a new Image object on every call.
 
@@ -122,10 +124,15 @@ def basic_attribute_sampler(
         _rng = np.random.RandomState(seed)
         symbols = []
         _n_symbols = _select(1, n_symbols, _rng)
-        for i in range(_n_symbols):
-            _alphabet = _select(lambda rng: LANGUAGE_MAP["english"].get_alphabet(support_bold=True), alphabet, _rng)
 
-            _char = _select(lambda rng: rng.choice(_alphabet.symbols), char, _rng)
+        _alphabet = _select(lambda rng: LANGUAGE_MAP["english"].get_alphabet(support_bold=True), alphabet, _rng)
+
+        # added to allow arbitrary distribution over chars
+        all_symbols = _alphabet.symbols if char_idx is None else [_alphabet.symbols[_idx] for _idx in char_idx]
+
+        for i in range(_n_symbols):
+            #_alphabet = _select(lambda rng: LANGUAGE_MAP["english"].get_alphabet(support_bold=True), alphabet, _rng)
+            _char = _select(lambda rng: rng.choice(all_symbols, p=char_dist), char, _rng)
             _font = _select(lambda rng: rng.choice(sorted(_alphabet.fonts)), font, _rng)
             _is_bold = _select(lambda rng: rng.choice([True, False]), is_bold, _rng)
             _is_slant = _select(lambda rng: rng.choice([True, False]), is_slant, _rng)
